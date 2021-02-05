@@ -7,8 +7,8 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
     <Grid>
-        <Image x:Name="imgSource"  HorizontalAlignment="Left" Height="276" Margin="10,10,0,0" VerticalAlignment="Top" Width="345"/>
-        <Image x:Name="imgResult" HorizontalAlignment="Left" Height="285" Margin="471,10,0,0" VerticalAlignment="Top" Width="304"/>
+        <Image x:Name="imgSource"  HorizontalAlignment="Left" Height="300" Margin="10,10,0,0" VerticalAlignment="Top" Width="300"/>
+        <Image x:Name="imgResult" HorizontalAlignment="Left" Height="300" Margin="325,10,0,0" VerticalAlignment="Top" Width="300"/>
         <Label Name="lblTime" Content="Label" HorizontalAlignment="Left" Margin="54,372,0,0" VerticalAlignment="Top"/>
 
     </Grid>
