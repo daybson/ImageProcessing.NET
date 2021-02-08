@@ -33,7 +33,7 @@ namespace ImageProcessingNET5
         {
             Stopwatch a = new Stopwatch();
 
-            var bmp = new BitmapImage(new Uri("E://lena.jpg"));
+            var bmp = new BitmapImage(new Uri("D://lena.jpg"));
             var rect = new Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight);
             imgSource.Source = bmp;
 
@@ -62,6 +62,7 @@ namespace ImageProcessingNET5
             a.Start();
             cImageGrid.AveragingGrid(originalCImage, blurrFactor);
             a.Stop();
+            cImageGrid.Bytes = cImageGrid.GridAsBytes();
             WriteableBitmap wrtBitmapGrid = new WriteableBitmap(bmp.PixelWidth, bmp.PixelHeight, bmp.DpiX, bmp.DpiY, bmp.Format, null);
             wrtBitmapGrid.WritePixels(rect, cImageGrid.GridAsBytes(), cImageGrid.stride, 0);
             imgGrid.Source = wrtBitmapGrid;
@@ -72,11 +73,15 @@ namespace ImageProcessingNET5
             a.Start();
             cImageMatrix.AveragingMatrix(originalCImage, blurrFactor);
             a.Stop();
+            cImageMatrix.Bytes = cImageMatrix.MatrixAsBytes();
             WriteableBitmap wrtBitmapMatrix = new WriteableBitmap(bmp.PixelWidth, bmp.PixelHeight, bmp.DpiX, bmp.DpiY, bmp.Format, null);
             wrtBitmapMatrix.WritePixels(rect, cImageMatrix.MatrixAsBytes(), cImageMatrix.stride, 0);
             imgMatrix.Source = wrtBitmapMatrix;
             lblMatrix.Content = "Matrix: " + a.ElapsedMilliseconds + "ms";
-            
+
+
+            lblIgualdade.Content = cImageMatrix == cImageBytes &&
+                                    cImageGrid == cImageBytes;
         }
     }
 }

@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageProcessingNET5"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="900" Loaded="Window_Loaded">
-    <Grid>
+        Title="MainWindow" Height="328" Width="900" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen">
+    <Grid Height="435">
         <Image x:Name="imgSource"  HorizontalAlignment="Left" Height="200" Margin="10,10,0,0" VerticalAlignment="Top" Width="200"/>
         <Image x:Name="imgBytes" HorizontalAlignment="Left" Height="200" Margin="228,10,0,0" VerticalAlignment="Top" Width="200"/>
         <Image x:Name="imgGrid" HorizontalAlignment="Left" Height="200" Margin="440,10,0,0" VerticalAlignment="Top" Width="200"/>
@@ -14,5 +14,6 @@
         <Label Name="lblBytes" Content="Label" HorizontalAlignment="Left" Margin="304,217,0,0" VerticalAlignment="Top"/>
         <Label Name="lblGrid" Content="Label" HorizontalAlignment="Left" Margin="514,217,0,0" VerticalAlignment="Top"/>
         <Label Name="lblMatrix" Content="Label" HorizontalAlignment="Left" Margin="744,217,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lblIgualdade" Content="" HorizontalAlignment="Left" Margin="10,243,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

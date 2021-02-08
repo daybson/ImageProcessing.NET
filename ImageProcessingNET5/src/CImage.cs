@@ -76,9 +76,41 @@ namespace ImageProcessingNET5.src
 
             Grid = new Pixel[max];
         }
-        
+
         #endregion
 
+
+        #region Overload Operators
+
+        public static bool operator ==(CImage self, CImage other)
+        {
+            if (self.width != other.width || self.height != other.height)
+                return false;
+
+            for (int i = 0; i < self.Bytes.Length; i++)
+            {
+                if (self.Bytes[i] != other.Bytes[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        public static bool operator !=(CImage self, CImage other)
+        {
+            if (self.width != other.width || self.height != other.height)
+                return true;
+
+            for (int i = 0; i < self.Bytes.Length; i++)
+            {
+                if (self.Bytes[i] != other.Bytes[i])
+                    return true;
+            }
+
+            return false;
+        }
+        
+        #endregion
 
 
         public byte[] GridAsBytes()
@@ -112,7 +144,6 @@ namespace ImageProcessingNET5.src
 
             return bytes;
         }
-
 
 
         #region Filters
