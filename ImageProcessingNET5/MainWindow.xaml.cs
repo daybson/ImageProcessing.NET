@@ -37,26 +37,46 @@ namespace ImageProcessingNET5
             var rect = new Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight);
             imgSource.Source = bmp;
 
-            a.Start();
+            int blurrFactor = 2;
+
 
             int stride = (bmp.Format.BitsPerPixel * bmp.PixelWidth) / 8;
             var bytesPixels = new byte[stride * bmp.PixelHeight];
 
             bmp.CopyPixels(bytesPixels, stride, 0);
 
-            CImage cImage   =   new CImage(bmp.PixelWidth, bmp.PixelHeight, bmp.Format.BitsPerPixel, bytesPixels);
-            CImage cImage2  =   new CImage(bmp.PixelWidth, bmp.PixelHeight, bmp.Format.BitsPerPixel, bytesPixels);
+            CImage originalCImage = new CImage(bmp.PixelWidth, bmp.PixelHeight, bmp.Format.BitsPerPixel, bytesPixels);
 
-            //cImage2.Averaging(cImage, 2);
 
-            WriteableBitmap wrtBitmap = new WriteableBitmap(bmp.PixelWidth, bmp.PixelHeight, bmp.DpiX, bmp.DpiY, bmp.Format, null);
-            //wrtBitmap.WritePixels(rect, cImage2.GridAsBytes(), stride, 0);
-            wrtBitmap.WritePixels(rect, cImage2.MatrixAsBytes(), stride, 0);
-
+            CImage cImageBytes = new CImage(bmp.PixelWidth, bmp.PixelHeight, bmp.Format.BitsPerPixel, bytesPixels);
+            a.Start();
+            cImageBytes.AveragingBytes(originalCImage, blurrFactor);
             a.Stop();
+            WriteableBitmap wrtBitmapBytes = new WriteableBitmap(bmp.PixelWidth, bmp.PixelHeight, bmp.DpiX, bmp.DpiY, bmp.Format, null);
+            wrtBitmapBytes.WritePixels(rect, cImageBytes.Bytes, cImageBytes.stride, 0);
+            imgBytes.Source = wrtBitmapBytes;
+            lblBytes.Content = "Bytes: " + a.ElapsedMilliseconds + "ms";
 
-            imgResult.Source = wrtBitmap;
-            lblTime.Content = a.ElapsedMilliseconds + "ms";
+             
+            CImage cImageGrid = new CImage(bmp.PixelWidth, bmp.PixelHeight, bmp.Format.BitsPerPixel, bytesPixels);
+            a.Start();
+            cImageGrid.AveragingGrid(originalCImage, blurrFactor);
+            a.Stop();
+            WriteableBitmap wrtBitmapGrid = new WriteableBitmap(bmp.PixelWidth, bmp.PixelHeight, bmp.DpiX, bmp.DpiY, bmp.Format, null);
+            wrtBitmapGrid.WritePixels(rect, cImageGrid.GridAsBytes(), cImageGrid.stride, 0);
+            imgGrid.Source = wrtBitmapGrid;
+            lblGrid.Content = "Grid: " + a.ElapsedMilliseconds + "ms";
+            
+
+            CImage cImageMatrix = new CImage(bmp.PixelWidth, bmp.PixelHeight, bmp.Format.BitsPerPixel, bytesPixels);
+            a.Start();
+            cImageMatrix.AveragingMatrix(originalCImage, blurrFactor);
+            a.Stop();
+            WriteableBitmap wrtBitmapMatrix = new WriteableBitmap(bmp.PixelWidth, bmp.PixelHeight, bmp.DpiX, bmp.DpiY, bmp.Format, null);
+            wrtBitmapMatrix.WritePixels(rect, cImageMatrix.MatrixAsBytes(), cImageMatrix.stride, 0);
+            imgMatrix.Source = wrtBitmapMatrix;
+            lblMatrix.Content = "Matrix: " + a.ElapsedMilliseconds + "ms";
+            
         }
     }
 }

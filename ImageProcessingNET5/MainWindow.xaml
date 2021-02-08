@@ -5,11 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageProcessingNET5"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
+        Title="MainWindow" Height="450" Width="900" Loaded="Window_Loaded">
     <Grid>
-        <Image x:Name="imgSource"  HorizontalAlignment="Left" Height="300" Margin="10,10,0,0" VerticalAlignment="Top" Width="300"/>
-        <Image x:Name="imgResult" HorizontalAlignment="Left" Height="300" Margin="325,10,0,0" VerticalAlignment="Top" Width="300"/>
-        <Label Name="lblTime" Content="Label" HorizontalAlignment="Left" Margin="54,372,0,0" VerticalAlignment="Top"/>
-
+        <Image x:Name="imgSource"  HorizontalAlignment="Left" Height="200" Margin="10,10,0,0" VerticalAlignment="Top" Width="200"/>
+        <Image x:Name="imgBytes" HorizontalAlignment="Left" Height="200" Margin="228,10,0,0" VerticalAlignment="Top" Width="200"/>
+        <Image x:Name="imgGrid" HorizontalAlignment="Left" Height="200" Margin="440,10,0,0" VerticalAlignment="Top" Width="200"/>
+        <Image x:Name="imgMatrix" HorizontalAlignment="Left" Height="200" Margin="650,10,0,0" VerticalAlignment="Top" Width="200"/>
+        <Label Name="lblBytes" Content="Label" HorizontalAlignment="Left" Margin="304,217,0,0" VerticalAlignment="Top"/>
+        <Label Name="lblGrid" Content="Label" HorizontalAlignment="Left" Margin="514,217,0,0" VerticalAlignment="Top"/>
+        <Label Name="lblMatrix" Content="Label" HorizontalAlignment="Left" Margin="744,217,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

@@ -1,62 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Media.Imaging;
 
 namespace ImageProcessingNET5.src
 {
     public struct Pixel
     {
-        public byte Blue, Green, Red, a;
+        public byte B, G, R, a;
 
-        public Pixel(byte blue, byte green, byte red, byte a)
+        public Pixel(byte a, byte red, byte green, byte blue)
         {
-            this.Blue = blue;
-            this.Green = green;
-            this.Red = red;
             this.a = a;
+            this.R = red;
+            this.G = green;
+            this.B = blue;
         }
     }
+
+    //----------------------------------------------------------------------------------------
 
     public class CImage
     {
         public Pixel[] Grid;
         public Pixel[,] Matrix;
-
+        public byte[] Bytes;
         public int width, height, nBits, stride;
+
+        #region Constructors
 
         public CImage(int w, int h, int nbits, byte[] bytesPixels)
         {
             this.width = w;
             this.height = h;
             this.nBits = nbits;
-            int max = this.width * this.height;
 
             this.stride = nbits * width / 8;
 
-            Grid = new Pixel[bytesPixels.Length];
-            Matrix = new Pixel[height, width];
+            this.Bytes = new byte[this.width * this.height * (this.nBits / 8)];
+            this.Grid = new Pixel[height * width];
+            this.Matrix = new Pixel[height, width];
 
-            for (int i = 0; i < bytesPixels.Length - 3; i += 1)
+
+            for (int i = 0; i < this.width * this.height * (this.nBits / 8); i++)
             {
-                Grid[i].a = bytesPixels[0 + i];
-                Grid[i].Red = bytesPixels[1 + i];
-                Grid[i].Green = bytesPixels[2 + i];
-                Grid[i].Blue = bytesPixels[3 + i];
+                Bytes[i] = bytesPixels[i];
             }
 
-
-            for (int y = 0; y < height; y += 1)
+            for (int i = 0; i < Grid.Length; i++)
             {
-                for (int x = 0; x < width; x += 1)
+                Grid[i].a = bytesPixels[0 + i];
+                Grid[i].R = bytesPixels[1 + i];
+                Grid[i].G = bytesPixels[2 + i];
+                Grid[i].B = bytesPixels[3 + i];
+            }
+
+            for (int y = 0; y < this.height; y++)
+            {
+                for (int x = 0; x < this.width; x++)
                 {
-                    Matrix[y, x].a = bytesPixels[y * stride + 4 * x + 0];
-                    Matrix[y, x].Red = bytesPixels[y * stride + 4 * x + 1];
-                    Matrix[y, x].Green = bytesPixels[y * stride + 4 * x + 2];
-                    Matrix[y, x].Blue = bytesPixels[y * stride + 4 * x + 3];
+                    this.Matrix[y, x].a = bytesPixels[y * stride + 4 * x + 0];
+                    this.Matrix[y, x].R = bytesPixels[y * stride + 4 * x + 1];
+                    this.Matrix[y, x].G = bytesPixels[y * stride + 4 * x + 2];
+                    this.Matrix[y, x].B = bytesPixels[y * stride + 4 * x + 3];
                 }
             }
         }
-
 
         public CImage(int nx, int ny, int nbits)
         {
@@ -67,23 +76,25 @@ namespace ImageProcessingNET5.src
 
             Grid = new Pixel[max];
         }
+        
+        #endregion
+
+
 
         public byte[] GridAsBytes()
         {
-            byte[] bytes = new byte[Grid.Length * 4];
+            byte[] bytes = new byte[this.width * this.height * (this.nBits / 8)];
 
-            for (int i = 0; i < Grid.Length; i += 4)
+            for (int i = 0; i < this.Grid.Length; i++)
             {
-                bytes[0 + i] = Grid[i].a;
-                bytes[1 + i] = Grid[i].Red;
-                bytes[2 + i] = Grid[i].Green;
-                bytes[3 + i] = Grid[i].Blue;
+                bytes[4 * i + 0] = Grid[i].a;
+                bytes[4 * i + 1] = Grid[i].R;
+                bytes[4 * i + 2] = Grid[i].G;
+                bytes[4 * i + 3] = Grid[i].B;
             }
 
             return bytes;
         }
-
-
         public byte[] MatrixAsBytes()
         {
             byte[] bytes = new byte[Matrix.Length * 4];
@@ -93,9 +104,9 @@ namespace ImageProcessingNET5.src
                 for (int x = 0; x < width; x += 1)
                 {
                     bytes[4 * x + 0 + y * stride] = Matrix[y, x].a;
-                    bytes[4 * x + 1 + y * stride] = Matrix[y, x].Red;
-                    bytes[4 * x + 2 + y * stride] = Matrix[y, x].Green;
-                    bytes[4 * x + 3 + y * stride] = Matrix[y, x].Blue;
+                    bytes[4 * x + 1 + y * stride] = Matrix[y, x].R;
+                    bytes[4 * x + 2 + y * stride] = Matrix[y, x].G;
+                    bytes[4 * x + 3 + y * stride] = Matrix[y, x].B;
                 }
             }
 
@@ -104,179 +115,134 @@ namespace ImageProcessingNET5.src
 
 
 
+        #region Filters
 
-        public void Averaging(CImage input, int halfWidth)
+        public void AveragingBytes(CImage input, int halfWidth)
         {
-            int nR, nG, nB, nA, sumR, sumG, sumB, sumA;
-
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < this.height; y++)
             {
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < this.width; x++)
                 {
-                    nR = nG = nB = nA = sumR = sumG = sumB = sumA = 0;
+                    int sumA, sumR, sumG, sumB, ns;
+                    ns = sumA = sumR = sumG = sumB = 0;
 
                     for (int yy = -halfWidth; yy <= halfWidth; yy++)
                     {
-                        if (y + yy >= 0 && y + yy < height) //BOUNDS CHECK
+                        //BOUNDS CHECK
+                        if (y + yy >= 0 && y + yy < input.height)
                         {
                             for (int xx = -halfWidth; xx <= halfWidth; xx++)
                             {
-                                if (x + xx >= 0 && x + xx < width) //BOUNDS CHECK
+                                //BOUNDS CHECK
+                                if (x + xx >= 0 && x + xx < input.width)
                                 {
-                                    //sumA += input.Grid[x + xx + width * (y + yy)].a;
-                                    //sumR += input.Grid[x + xx + width * (y + yy)].Red;
-                                    //sumG += input.Grid[x + xx + width * (y + yy)].Green;
-                                    //sumB += input.Grid[x + xx + width * (y + yy)].Blue;
-
-                                    sumA += input.Grid[x + xx + width * (y + yy)].a;
-                                    sumR += input.Grid[x + xx + width * (y + yy)].Red;
-                                    sumG += input.Grid[x + xx + width * (y + yy)].Green;
-                                    sumB += input.Grid[x + xx + width * (y + yy)].Blue;
-
-                                    nA++;
-                                    nR++;
-                                    nG++;
-                                    nB++;
-                                }
-                            }
-                        }
-                    }
-
-                    Grid[x + y % stride * y] = //    new Pixel(0, 0, 0, 0);
-
-                      new Pixel(
-                            (byte)((sumA + nA / 2) / nA),
-                            (byte)((sumR + nR / 2) / nR),
-                            (byte)((sumG + nG / 2) / nG),
-                            (byte)((sumB + nB / 2) / nB)
-                        );
-
-                }
-            }
-        }
-
-    }
-
-    /**
-    public class CImage
-    {
-        public Byte[] Grid;
-        public int width, height, nBits;
-
-
-        public CImage() { }
-
-
-        /// <summary>
-        /// Inicializa com array de bytes vazio, porém, de tamanho determinado.
-        /// </summary>
-        public CImage(int nx, int ny, int nbits)
-        {
-            width = nx;
-            height = ny;
-            nBits = nbits;
-            int max = width * height * (nBits / 8);
-            Grid = new byte[max];
-        }
-
-
-        /// <summary>
-        /// Inicializa fazendo a cópia byte a byte do array passado como parâmetro.
-        /// </summary>
-        /// <param name="nbits">Total de bits por pixel (canal * depth)</param>
-        public CImage(int nx, int ny, int nbits, byte[] img)
-        {
-            width = nx;
-            height = ny;
-            nBits = nbits;
-            int max = width * height * (nBits / 8);
-
-            Grid = new byte[max];
-
-            for (int i = 0; i < max; i++)
-            {
-                Grid[i] = img[i];
-            }
-        }
-
-
-
-        public void Average(CImage input, int halfWidth)
-        {
-            int ns, sum;
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    ns = sum = 0;
-                    for (int yy = -halfWidth; yy <= halfWidth; yy++)
-                    {
-                        if (y + yy >= 0 && y + yy < height)
-                        {
-                            for (int xx = -halfWidth; xx <= halfWidth; xx++)
-                            {
-                                if (x + xx >= 0 && x + xx < width)
-                                {
-                                    sum += input.Grid[x + xx + width * (y + yy)];
+                                    var index = (y + yy) * stride + 4 * (xx + x);
+                                    sumA += input.Bytes[index + 0];
+                                    sumR += input.Bytes[index + 1];
+                                    sumG += input.Bytes[index + 2];
+                                    sumB += input.Bytes[index + 3];
                                     ns++;
                                 }
                             }
                         }
                     }
 
-                    Grid[x + width * y] = (byte)((sum + ns / 2) / ns);
+                    this.Bytes[4 * x + 0 + y * this.stride] = (byte)((sumA + ns / 2) / ns);
+                    this.Bytes[4 * x + 1 + y * this.stride] = (byte)((sumR + ns / 2) / ns);
+                    this.Bytes[4 * x + 2 + y * this.stride] = (byte)((sumG + ns / 2) / ns);
+                    this.Bytes[4 * x + 3 + y * this.stride] = (byte)((sumB + ns / 2) / ns);
                 }
             }
         }
 
-
-        public void Averaging(CImage input, int HalfWidth)
+        public void AveragingGrid(CImage input, int halfWidth)
         {
-            //int nS, sum;
-            int nR, nG, nB, nX, sumR, sumG, sumB, sumX;
+            int sumR, sumG, sumB, sumA, ns;
 
-            for (int y = 0; y < height; y++) //================================
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < width ; x ++) //==============================
+                for (int x = 0; x < width; x++)
                 {
-                    //nS = sum = 0;
-                    nR = nG = nB = nX = sumR = sumG = sumB = sumX = 0;
+                    ns = sumR = sumG = sumB = sumA = 0;
 
-                    for (int yy = -HalfWidth; yy <= HalfWidth; yy++) //=======
+                    for (int yy = -halfWidth; yy <= halfWidth; yy++)
                     {
+                        // BOUNDS CHECK
                         if (y + yy >= 0 && y + yy < input.height)
                         {
-                            for (int xx = -HalfWidth; xx <= HalfWidth; xx++) //===
+                            for (int xx = -halfWidth; xx <= halfWidth; xx++)
                             {
+                                // BOUNDS CHECK
                                 if (x + xx >= 0 && x + xx < input.width)
                                 {
-                                    sumB += input.Grid[0 + x + xx + width * (y + yy)];
-                                    sumG += input.Grid[1 + x + xx + width * (y + yy)];
-                                    sumR += input.Grid[2 + x + xx + width * (y + yy)];
-                                    sumX += input.Grid[3 + x + xx + width * (y + yy)];
-
-                                    nB++;
-                                    nG++;
-                                    nR++;
-                                    nX++;
-
-                                    //sum += input.Grid[3 + x + xx + width * (y + yy)];
-                                    //nS += 3;
+                                    var index = (y + yy) * stride + 4 * (xx + x);
+                                    sumA += input.Bytes[index + 0];
+                                    sumR += input.Bytes[index + 1];
+                                    sumG += input.Bytes[index + 2];
+                                    sumB += input.Bytes[index + 3];
+                                    ns++;
                                 }
-                            } //====== end for (xx... ===================
+                            }
                         }
-                    } //======== end for (yy... =======================
+                    }
 
-                    //Grid[x + width * y] = (byte)((sum + nS / 2) / nS); //+nS/2 is for rounding
-                    Grid[0 + x + width * y] = (byte)((sumB + nB / 2) / nB);
-                    Grid[1 + x + width * y] = (byte)((sumG + nG / 2) / nG);
-                    Grid[2 + x + width * y] = (byte)((sumR + nR / 2) / nR);
-                    Grid[3 + x + width * y] = (byte)((sumX + nX / 2) / nX);
+                    int xyw = x + y * this.width;
+                    int ns2 = ns / 2;
 
-                } //============ end for (x... ========================
-            } //============== end for (y... ========================
+                    Grid[xyw] =
+                      new Pixel(
+                            (byte)((sumA + ns2) / ns),
+                            (byte)((sumR + ns2) / ns),
+                            (byte)((sumG + ns2) / ns),
+                            (byte)((sumB + ns2) / ns));
+                }
+            }
         }
+
+        public void AveragingMatrix(CImage input, int halfWidth)
+        {
+            int sumR, sumG, sumB, sumA, ns;
+
+            for (int y = 0; y < input.height; y++)
+            {
+                for (int x = 0; x < input.width; x++)
+                {
+                    ns = sumR = sumG = sumB = sumA = 0;
+
+                    // LOOP FILTRO
+                    for (int yy = -halfWidth; yy <= halfWidth; yy++)
+                    {
+                        // BOUNDS CHECK
+                        if (y + yy >= 0 && y + yy < input.height)
+                        {
+                            for (int xx = -halfWidth; xx <= halfWidth; xx++)
+                            {
+                                // BOUNDS CHECK
+                                if (x + xx >= 0 && x + xx < input.width)
+                                {
+                                    var index = (y + yy) * stride + 4 * (xx + x);
+                                    sumA += input.Bytes[index + 0];
+                                    sumR += input.Bytes[index + 1];
+                                    sumG += input.Bytes[index + 2];
+                                    sumB += input.Bytes[index + 3];
+                                    ns++;
+                                }
+                            }
+                        }
+                    }
+                    // END LOOP FILTRO
+                    
+                    int ns2 = ns / 2;
+                    Matrix[y, x] =
+                      new Pixel(
+                            (byte)((sumA + ns2) / ns),
+                            (byte)((sumR + ns2) / ns),
+                            (byte)((sumG + ns2) / ns),
+                            (byte)((sumB + ns2) / ns));
+                }
+            }
+        }
+
+        #endregion
     }
-    */
 }
